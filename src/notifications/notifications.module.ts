@@ -6,11 +6,13 @@ import {
   NotificationSchema,
 } from './schemas/notification.schema';
 import { NotificationsController } from './notification.controller';
+import { EventsModule } from 'src/events/events.module';
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: Notification.name, schema: NotificationSchema },
     ]),
+    EventsModule,
   ],
   controllers: [NotificationsController],
   providers: [NotificationsService],

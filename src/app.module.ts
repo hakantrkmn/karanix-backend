@@ -1,16 +1,18 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { MongooseModule } from '@nestjs/mongoose';
+import { ScheduleModule } from '@nestjs/schedule';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { AuthModule } from './auth/auth.module';
 import { LocationsModule } from './locations/locations.module';
 import { OperationsModule } from './operations/operations.module';
 import { PaxModule } from './pax/pax.module';
 import { VehiclesModule } from './vehicles/vehicles.module';
 import { NotificationsModule } from './notifications/notifications.module';
-import { EventsGateway } from './events/events.gateway';
-import { AuthModule } from './auth/auth.module';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { ScheduleModule } from '@nestjs/schedule';
-import { MongooseModule } from '@nestjs/mongoose';
+import { CustomersModule } from './customers/customers.module';
+import { EventsModule } from './events/events.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -20,18 +22,20 @@ import { MongooseModule } from '@nestjs/mongoose';
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
-        uri: configService.get('MONGO_URI'),
+        uri: configService.get<string>('MONGO_URI'),
       }),
       inject: [ConfigService],
     }),
+    AuthModule,
     LocationsModule,
     OperationsModule,
     PaxModule,
     VehiclesModule,
     NotificationsModule,
-    AuthModule,
+    CustomersModule,
+    EventsModule,
   ],
   controllers: [AppController],
-  providers: [AppService, EventsGateway],
+  providers: [AppService],
 })
 export class AppModule {}

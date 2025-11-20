@@ -40,7 +40,6 @@ export class Pax {
   @Prop()
   notes: string;
 
-  // For Idempotency
   @Prop()
   checkin_event_id: string;
 }

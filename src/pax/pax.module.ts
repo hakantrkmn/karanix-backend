@@ -8,6 +8,7 @@ import {
   OperationSchema,
 } from '../operations/schemas/operation.schema';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { EventsModule } from 'src/events/events.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
       { name: Operation.name, schema: OperationSchema },
     ]),
     NotificationsModule,
+    EventsModule,
   ],
   controllers: [PaxController],
   providers: [PaxService],

@@ -35,5 +35,5 @@ export class CheckInDto {
 
   @IsString()
   @IsNotEmpty()
-  eventId: string; // For idempotency
+  eventId: string;
 }

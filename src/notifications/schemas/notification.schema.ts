@@ -19,7 +19,7 @@ export class Notification {
   read: boolean;
 
   @Prop()
-  related_id: string; // Operation ID or Pax ID
+  related_id: string;
 }
 
 export const NotificationSchema = SchemaFactory.createForClass(Notification);

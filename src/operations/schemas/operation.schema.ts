@@ -34,7 +34,7 @@ export class Operation {
   start_time: Date;
 
   @Prop({ type: [{ type: MongooseSchema.Types.ObjectId, ref: 'Pax' }] })
-  pax: string[]; // Array of Pax IDs
+  pax: string[];
 
   @Prop({ default: 0 })
   checked_in_count: number;
