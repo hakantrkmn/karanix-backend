@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { LocationsController } from './locations.controller';
 import { LocationsService } from './locations.service';
-import { LocationSchema } from './schemas/location.schema';
+import { Location, LocationSchema } from './schemas/location.schema';
 import { MongooseModule } from '@nestjs/mongoose';
 
 @Module({
