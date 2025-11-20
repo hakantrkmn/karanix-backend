@@ -4,6 +4,11 @@ import { Model } from 'mongoose';
 import { User, UserDocument } from './schemas/user.schema';
 import { JwtService } from '@nestjs/jwt';
 import { RegisterDto } from './dto/register.dto';
+import {
+  AuthenticatedUser,
+  JwtPayload,
+  LoginResponse,
+} from './types/auth.types';
 @Injectable()
 export class AuthService {
   constructor(
@@ -14,22 +19,26 @@ export class AuthService {
   async validateUser(
     username: string,
     password: string,
-  ): Promise<UserDocument | null> {
+  ): Promise<AuthenticatedUser | null> {
     const user = await this.userModel.findOne({ username });
     if (user && user.password === password) {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { password, ...result } = user.toObject();
       return {
-        _id: result._id,
+        _id: String(result._id),
         username: result.username,
         role: result.role,
-      } as UserDocument;
+      } as AuthenticatedUser;
     }
     return null;
   }
 
-  login(user: { _id: string; username: string; role: string }) {
-    const payload = { username: user.username, sub: user._id, role: user.role };
+  login(user: AuthenticatedUser): LoginResponse {
+    const payload: JwtPayload = {
+      username: user.username,
+      sub: user._id,
+      role: user.role,
+    };
     return {
       access_token: this.jwtService.sign(payload),
     };

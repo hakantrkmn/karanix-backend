@@ -2,9 +2,7 @@ import { Controller, Post, UseGuards, Request, Get } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
-interface AuthenticatedRequest extends Request {
-  user: { _id: string; username: string; role: string };
-}
+import { AuthenticatedRequest } from './types/auth.types';
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
