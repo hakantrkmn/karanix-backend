@@ -1,14 +1,17 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { Logger, ValidationPipe } from '@nestjs/common';
-import { Request, Response, NextFunction } from 'express';
+import { ValidationPipe } from '@nestjs/common';
+import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
+import { WinstonLogger } from 'nest-winston';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
-    logger: ['error', 'warn', 'log', 'debug', 'verbose'],
+    bufferLogs: true,
   });
 
-  const logger = new Logger('Bootstrap');
+  // Winston logger'ı kullan
+  const winstonLogger = app.get(WINSTON_MODULE_PROVIDER);
+  app.useLogger(new WinstonLogger(winstonLogger));
 
   app.setGlobalPrefix('api');
   app.enableCors();
@@ -21,25 +24,12 @@ async function bootstrap() {
       },
     }),
   );
-  // Request logging middleware
-  app.use((req: Request, res: Response, next: NextFunction) => {
-    const httpLogger = new Logger('HTTP');
-    const { method, originalUrl, ip } = req;
-    const startTime = Date.now();
-
-    res.on('finish', () => {
-      const { statusCode } = res;
-      const duration = Date.now() - startTime;
-      httpLogger.log(
-        `${method} ${originalUrl} ${statusCode} ${duration}ms - ${ip}`,
-      );
-    });
-
-    next();
-  });
 
   const port = process.env.PORT ?? 3001;
   await app.listen(port);
-  logger.log(`🚀 Application is running on: http://localhost:${port}/api`);
+  const logger = app.get(WINSTON_MODULE_PROVIDER);
+  logger.info(`🚀 Application is running on: http://localhost:${port}/api`, {
+    context: 'Bootstrap',
+  });
 }
 void bootstrap();

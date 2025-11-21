@@ -12,6 +12,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CreateOperationDto } from './dto/create-operation.dto';
 import { FindAllQueryDto } from './dto/find-all-query.dto';
 import { StartOperationDto } from './dto/start-operation.dto';
+import { CreatePaxDto } from '../pax/dto/create-pax.dto';
 
 @Controller('operations')
 export class OperationsController {
@@ -37,5 +38,14 @@ export class OperationsController {
   @Post(':id/start')
   start(@Param() startOperationDto: StartOperationDto) {
     return this.operationsService.start(startOperationDto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post(':id/pax')
+  addPaxToOperation(
+    @Param('id') operationId: string,
+    @Body() createPaxDto: CreatePaxDto,
+  ) {
+    return this.operationsService.addPaxToOperation(operationId, createPaxDto);
   }
 }

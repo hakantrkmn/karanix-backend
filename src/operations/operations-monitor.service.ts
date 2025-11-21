@@ -6,6 +6,7 @@ import { Operation, OperationDocument } from './schemas/operation.schema';
 import { EventsGateway } from '../events/events.gateway';
 import { NotificationsService } from '../notifications/notifications.service';
 import { NotificationType } from 'src/notifications/types/notification.types';
+import { OPERATION_MONITOR_CONSTANTS } from './constants/operation-monitor.constants';
 
 @Injectable()
 export class OperationsMonitorService {
@@ -19,7 +20,9 @@ export class OperationsMonitorService {
   @Cron(CronExpression.EVERY_MINUTE)
   async checkOperations() {
     const now = new Date();
-    const fifteenMinutesAgo = new Date(now.getTime() - 15 * 60 * 1000);
+    const fifteenMinutesAgo = new Date(
+      now.getTime() - OPERATION_MONITOR_CONSTANTS.CHECK_INTERVAL_MS,
+    );
 
     const operations = await this.operationModel
       .find({
@@ -34,7 +37,9 @@ export class OperationsMonitorService {
           ? (operation.checked_in_count || 0) / operation.total_pax
           : 0;
 
-      if (checkInRatio < 0.7) {
+      if (
+        checkInRatio < OPERATION_MONITOR_CONSTANTS.LOW_CHECKIN_RATE_THRESHOLD
+      ) {
         const message = `Operation ${operation.code || operation.tour_name}: Low check-in rate (${(checkInRatio * 100).toFixed(0)}%)`;
 
         await this.notificationsService.create({

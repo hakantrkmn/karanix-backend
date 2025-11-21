@@ -34,23 +34,20 @@ export class PaxService {
       throw new BadRequestException('Pax not found');
     }
 
-    // Idempotency check
     if (pax.checkin_event_id === checkInDto.eventId) {
-      return pax; // Already processed
+      return pax;
     }
 
     pax.status = PaxStatus.CHECKED_IN;
     pax.checkin_event_id = checkInDto.eventId;
     await pax.save();
 
-    // Update operation checked_in_count
     if (pax.operation_id) {
       const operation = await this.operationModel.findById(pax.operation_id);
       if (operation) {
         operation.checked_in_count = (operation.checked_in_count || 0) + 1;
         await operation.save();
 
-        // Create notification (Event log) for check-in
         await this.notificationsService.create({
           message: `Pax ${pax.name} checked in for operation ${operation.code || operation.tour_name}`,
           type: NotificationType.INFO,
@@ -58,7 +55,6 @@ export class PaxService {
         });
       }
 
-      // Emit update to operation channel
       this.eventsGateway.emitOperationUpdate(pax.operation_id.toString(), {
         type: 'pax_update',
         pax,
@@ -66,7 +62,6 @@ export class PaxService {
       });
     }
 
-    // Emit WebSocket alert
     this.eventsGateway.emitAlert({
       type: 'checkin',
       paxId: id,

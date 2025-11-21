@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ScheduleModule } from '@nestjs/schedule';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
@@ -12,12 +13,15 @@ import { VehiclesModule } from './vehicles/vehicles.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { CustomersModule } from './customers/customers.module';
 import { EventsModule } from './events/events.module';
+import { LoggerModule } from './common/logger/logger.module';
+import { HttpLoggerInterceptor } from './common/logger/http-logger.interceptor';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    LoggerModule,
     ScheduleModule.forRoot(),
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
@@ -36,6 +40,12 @@ import { EventsModule } from './events/events.module';
     EventsModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: HttpLoggerInterceptor,
+    },
+  ],
 })
 export class AppModule {}

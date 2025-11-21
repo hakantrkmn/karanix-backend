@@ -9,6 +9,7 @@ import {
   JwtPayload,
   LoginResponse,
 } from './types/auth.types';
+import * as bcrypt from 'bcrypt';
 @Injectable()
 export class AuthService {
   constructor(
@@ -21,7 +22,7 @@ export class AuthService {
     password: string,
   ): Promise<AuthenticatedUser | null> {
     const user = await this.userModel.findOne({ username });
-    if (user && user.password === password) {
+    if (user && (await bcrypt.compare(password, user.password))) {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { password, ...result } = user.toObject();
       return {
@@ -45,7 +46,11 @@ export class AuthService {
   }
 
   async register(user: RegisterDto) {
-    const newUser = new this.userModel(user);
+    const hashedPassword = await bcrypt.hash(user.password, 10);
+    const newUser = new this.userModel({
+      ...user,
+      password: hashedPassword,
+    });
     return newUser.save();
   }
 }

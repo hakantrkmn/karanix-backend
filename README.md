@@ -1,98 +1,228 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Karanix Backend
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+## Başlangıç
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+env dosyası oluşturulduktan sonra npm run seed ile mongodb ve test verileri oluşturulur. npm install backend ayağa kaldırılır. Backendde olan endpointler alt kısımda yazıyor. Ekstra olarak aklıma gelenleri de ekledim. Case dosyasında olanların tümünü ekledim. Bazı eksik gördüğüm kısımlarda kendim yaptım veya istenildiği gibi bıraktım. Sabit değerleri operations/constants içinde ki scripte koydum. Araç hareket testi için npm run test:vehicle komutu ile aktif olan operasyonlardaki araçlara heartbeat gönderilebilir. ./test-notification.sh ile düşük checkin notification test edilebilir.
 
-## Description
+### Gereksinimler
+- Node.js 18+
+- MongoDB 4.4+
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
-
-## Project setup
+### Kurulum
 
 ```bash
-$ npm install
+# Bağımlılıkları yükle
+npm install
+
+# Ortam değişkenlerini ayarla
+cp .env.example .env
+# .env dosyasını düzenleyin: MONGO_URI ve JWT_SECRET
+
+# Veritabanını seed et
+npm run seed
+
+# Uygulamayı başlat
+npm run start:dev
 ```
 
-## Compile and run the project
+Uygulama `http://localhost:3001/api` adresinde çalışır.
+
+## Environment Variables
+
+`.env` dosyası oluşturun:
+
+```env
+MONGO_URI=mongodb://localhost:27017/karanix
+JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+PORT=3001
+
+# Logging (opsiyonel)
+LOG_DIR=logs
+LOG_LEVEL=info
+```
+
+### Logging Ayarları
+
+- `LOG_DIR`: Log dosyalarının yazılacağı dizin (varsayılan: `logs`)
+- `LOG_LEVEL`: Log seviyesi - `error`, `warn`, `info`, `debug`, `verbose` (varsayılan: `info`)
+
+Log dosyaları otomatik olarak `logs/` dizininde oluşturulur:
+- `error.log`: Sadece hata logları
+- `combined.log`: Tüm log seviyeleri
+- `http.log`: HTTP istek logları
+
+Her dosya maksimum 5MB boyutunda olabilir ve 5 dosya saklanır (rotation).
+
+## Veritabanı Seed
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+npm run seed
 ```
 
-## Run tests
+Seed script şunları oluşturur:
+- Kullanıcı: `admin` / `password`
+- Örnek lokasyonlar, müşteriler, araçlar, operasyonlar ve yolcular
+
+## API Endpoints
+
+**Base URL:** `http://localhost:3001/api`
+
+### Authentication
 
 ```bash
-# unit tests
-$ npm run test
+POST /api/auth/login
+{
+  "username": "admin",
+  "password": "password"
+}
 
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+# Response: { "access_token": "..." }
+# Sonraki isteklerde: Authorization: Bearer <token>
 ```
 
-## Deployment
+### Operasyonlar
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+| Method | Endpoint | Açıklama |
+|--------|----------|----------|
+| GET | `/api/operations?date=YYYY-MM-DD&status=active` | Operasyonları listele |
+| GET | `/api/operations/:id` | Operasyon detayı |
+| POST | `/api/operations` | Operasyon oluştur |
+| POST | `/api/operations/:id/start` | Operasyonu başlat |
+| POST | `/api/operations/:id/pax` | Operasyona yolcu ekle |
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+**Operasyon Oluştur:**
+```json
+{
+  "code": "OP-2024-001",
+  "tour_name": "İzmir Şehir Turu",
+  "date": "2024-01-15T00:00:00.000Z",
+  "start_time": "2024-01-15T09:00:00.000Z",
+  "vehicle_id": "35-VIP-01",
+  "driver_id": "DRV-001",
+  "guide_id": "GID-001",
+  "total_pax": 20,
+  "status": "planned",
+  "route": [{"lat": 38.4255, "lng": 27.136}]
+}
+```
+
+**Operasyona Yolcu Ekle:**
+```json
+{
+  "name": "John Doe",
+  "phone": "+90 555 123 4567",
+  "pickup_point": {"lat": 38.4255, "lng": 27.136, "address": "Swissôtel"},
+  "seat_no": "1A",
+  "status": "waiting"
+}
+```
+
+### Araçlar (GPS Heartbeat)
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+POST /api/vehicles/:id/heartbeat
+{
+  "lat": 38.4255,
+  "lng": 27.136,
+  "heading": 90,
+  "speed": 45.5,
+  "timestamp": "2024-01-15T09:15:30.000Z"
+}
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+Backend bu veriyi MongoDB'ye kaydeder ve WebSocket üzerinden yayınlar.
 
-## Resources
+### Yolcular (Check-in)
 
-Check out a few resources that may come in handy when working with NestJS:
+```bash
+POST /api/pax/:id/checkin
+{
+  "method": "qr",
+  "gps": {"lat": 38.4255, "lng": 27.136},
+  "eventId": "unique-uuid"
+}
+```
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+**Not:** `eventId` idempotency için gereklidir. Aynı `eventId` ile tekrar gönderilirse işlem tekrarlanmaz.
 
-## Support
+### Diğer Endpoints
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+- `POST /api/locations` - Lokasyon oluştur
+- `POST /api/customers` - Müşteri oluştur
+- `POST /api/customers/:id/locations` - Müşteriye lokasyon ata
+- `GET /api/notifications` - Bildirimleri listele
 
-## Stay in touch
+## WebSocket Events
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+**Bağlantı:**
+```javascript
+const socket = io('http://localhost:3001');
+```
 
-## License
+**Event'ler:**
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+| Event | Açıklama |
+|-------|----------|
+| `vehicle:{vehicleId}` | Araç konumu güncellemesi |
+| `operation:{operationId}:vehicle_position` | Operasyona ait araç konumu |
+| `operation:{operationId}` | Operasyon güncellemeleri (check-in, status değişikliği) |
+| `alert` | Uyarılar ve bildirimler |
+
+**Örnek:**
+```javascript
+socket.on('vehicle:35-VIP-01', (data) => {
+  // { vehicle_id, position: {lat, lng, heading, speed}, timestamp }
+});
+
+socket.on('operation:507f1f77bcf86cd799439011', (data) => {
+  // { type: 'pax_update', pax, checked_in_count }
+});
+
+socket.on('alert', (data) => {
+  // { type: 'warning', message, related_id }
+});
+```
+
+## Test
+
+
+```bash
+# 1. Login ve token al
+TOKEN=$(curl -s -X POST http://localhost:3001/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"password"}' | jq -r '.access_token')
+
+# 2. Operasyonları listele
+curl -H "Authorization: Bearer $TOKEN" http://localhost:3001/api/operations
+
+# 3. GPS heartbeat gönder
+curl -X POST http://localhost:3001/api/vehicles/35-VIP-01/heartbeat \
+  -H "Content-Type: application/json" \
+  -d '{"lat":38.4255,"lng":27.136,"heading":90,"speed":45.5}'
+```
+
+### Test Scriptleri
+
+```bash
+# Araç hareket simülasyonu (sürekli heartbeat gönderir)
+npm run test:vehicle
+
+# Bildirim testi (düşük check-in oranı uyarısı)
+chmod +x test-notification.sh
+./test-notification.sh
+```
+
+## Bildirim Sistemi
+
+Otomatik uyarılar:
+- **Düşük Check-in Oranı:** Operasyon başladıktan 15 dakika sonra, check-in oranı %70'in altındaysa
+- **Check-in Olayları:** Her check-in işleminde bilgilendirme
+
+Uyarılar WebSocket (`alert` event) ve REST API (`GET /api/notifications`) üzerinden erişilebilir.
+
+## Notlar
+
+- **Idempotency:** Check-in işlemleri `eventId` ile idempotent'tir
+- **WebSocket:** Tüm gerçek zamanlı güncellemeler WebSocket üzerinden yayınlanır
+- **Seed Script:** Mevcut verileri siler ve yeniden oluşturur (production'da dikkatli kullanın)
+
